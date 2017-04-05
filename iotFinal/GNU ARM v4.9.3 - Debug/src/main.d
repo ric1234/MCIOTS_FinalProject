@@ -1,4 +1,4 @@
-src/main.o: ../src/main.c \
+src/main.o: ../src/main.c ../src/main.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\device\siliconlabs\efm32lg\include\em_device.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\device\siliconlabs\efm32lg\include\efm32lg990f256.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\cmsis\include\core_cm3.h \
@@ -58,7 +58,6 @@ src/main.o: ../src/main.c \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_gpio.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_bus.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_assert.h \
- ../src/main.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_int.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_cmu.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_emu.h \
@@ -71,6 +70,8 @@ src/main.o: ../src/main.c \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_dma.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_i2c.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_leuart.h
+
+../src/main.h:
 
 c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\device\siliconlabs\efm32lg\include\em_device.h:
 
@@ -189,8 +190,6 @@ c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\
 c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_bus.h:
 
 c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_assert.h:
-
-../src/main.h:
 
 c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_int.h:
 

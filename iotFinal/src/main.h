@@ -29,7 +29,7 @@
 #define ON							1
 #define OFF							0
 
-#define LOWEST_ENERGY_MODE 			EM2			//Set the default minimum Energy mode here
+#define LOWEST_ENERGY_MODE 			EM0			//Set the default minimum Energy mode here
 #define LED0_PORT					gpioPortE
 #define LED1_PORT					gpioPortE
 #define LED0_PIN					2
@@ -41,7 +41,15 @@ typedef enum
 }sleepstate_t;
 
 uint8_t sleep_block_counter[4];
+/*
+ * Lowest Energy modes
+ */
+#define ACMP_LOWEST_ENERGY_MODE		EM3
 
-
+/*
+ * Modules Power Control
+ */
+#define SYSTEM_TEST					OFF
+#define CAPACITIVE_SENSOR			ON
 
 #endif /* SRC_MAIN_H_ */

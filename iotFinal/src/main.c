@@ -224,22 +224,96 @@ void Toggle_LED(uint8_t LED_no)
 		GPIO_PinOutToggle(LED1_PORT,LED1_PIN);
 }
 
+/********************************************************************************/
+/**************************************************************************************/
+/* * This function initializes the Analog comparator
+ * Input variables: None required
+ * Global Variables: sleep_block_counter
+ * Output Variables: None required
+ ********************************************************************************
+ ********************************************************************************
+* Light sense: Output from the photodiode is connected to PC6 and ACMP0 Channel 6
+* * The excite pin is input to the photodiode and is connected to the PD6 Something LES_ALTEX0*/
 
+void Capacitive_Sensor_Init(void)
+{
+	CMU_ClockEnable(cmuClock_ACMP1,true);
+#if 0
+	ACMP_Init_TypeDef my_acmp0;				//might be a global variable
+
+	my_acmp0.biasProg=0x7;									/* biasProg */
+	my_acmp0.enable=false;									//Enable after init
+	my_acmp0.fullBias=false;								//default is false higher the bias the faster the comparison
+	my_acmp0.halfBias=false;								//Lower bias better for power
+	my_acmp0.hysteresisLevel=acmpHysteresisLevel7;			//Higher the better..default is 5
+	my_acmp0.inactiveValue=false;
+	my_acmp0.interruptOnFallingEdge=false;
+	my_acmp0.interruptOnRisingEdge=false;					//Default is false
+	my_acmp0.lowPowerReferenceEnabled=false;					/* Disabled emitting inactive value during warmup. */
+	my_acmp0.vddLevel=0x3D;						/* VDD level */
+	my_acmp0.warmTime=acmpWarmTime512;						/* 512 cycle warmup to be safe */
+
+
+	ACMP_Init(ACMP0, &my_acmp0);
+
+	ACMP0->INPUTSEL=0X02<<_ACMP_INPUTSEL_VDDLEVEL_SHIFT;
+
+	ACMP_ChannelSet(ACMP0,acmpChannelVDD,acmpChannel6);
+#endif
+/************************************************************************/
+	ACMP_CapsenseInit_TypeDef my_acmp_capsense=
+		{
+		   .fullBias                 = false,
+		   .halfBias                 = false,
+		   .biasProg                 = 0x7,
+		   .warmTime                 = acmpWarmTime512,
+		   .hysteresisLevel          = acmpHysteresisLevel7,
+		   .resistor                 = acmpResistor0,
+		   .lowPowerReferenceEnabled = false,
+		   .vddLevel                 = 0x3D,
+		   .enable                   = false
+		  };
+
+	ACMP_CapsenseInit(ACMP1,&my_acmp_capsense);
+	/*// if gpio is to be disabled
+	// Configure ACMP locations, ACMP output to pin disabled.
+	  ACMP_GPIOSetup(ACMP0, 0, false, false);
+	  ACMP_GPIOSetup(ACMP1, 0, false, false);
+*/
+	  // Initialize ACMPs in capacitive sense mode.
+	  /*ACMP_CapsenseInit(ACMP0, &initACMP);
+	  ACMP_CapsenseInit(ACMP1, &initACMP);*/
+
+	ACMP_Channel_TypeDef my_acmp_channel=acmpChannelCapSense;
+	ACMP_CapsenseChannelSet(ACMP1,my_acmp_channel);
+
+	  //ACMP_ChannelSet(ACMP0,acmpChannelVDD,acmpChannel6);
+
+	//Interrupts part
+	ACMP0->IFC=0xFFFF ;									//Clear all interrupts
+	blockSleepMode(ACMP_LOWEST_ENERGY_MODE);					//Minimum is EM3 possible
+	ACMP_Enable(ACMP1);
+}
+/***********************************************************************************/
 int main(void)
 {
   /* Chip errata */
   CHIP_Init();
   GPIO_LedsInit();
+#if SYSTEM_TEST==ON
   while(1)
   {
   Turn_on_LED(1);
   for(int i=0;i<1000000;i++);
-	  Turn_off_LED(1);
-	  for(int i=0;i<1000000;i++);
+  Turn_off_LED(1);
+  for(int i=0;i<1000000;i++);
   }
-
+#endif
+#if CAPACITIVE_SENSOR==ON
+  Capacitive_Sensor_Init();
+#endif
   /* Infinite loop */
   while (1) {
-	  sleep();
+	  //sleep();
   }
 }
