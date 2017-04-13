@@ -1,5 +1,22 @@
 #include "main.h"
 
+int Desired_Period;
+int LETIMER0_prescaler;
+int Prescaled_two_power;
+
+#define LETIMER0_Max_Count 0xFFFF
+#define LETIMER0_period 0.004  // the ambient light sensor should be excited every 4 mili seconds
+#define OnTime 5.5  // the peiod wanterd in the question
+#define LETIMER0_LFXO_count 32768
+#define PortD gpioPortD
+#define Pin1 1
+#define PWM_FREQ 10000
+
+typedef enum
+{
+	pwmA=350,pwmB=460,pwmC=700,pwmD=1300
+}pwmState_t;
+pwmState_t pwmCapValue=pwmA;
 /*****************************************************************************************/
 /*
  *  Sleep functions
@@ -224,93 +241,206 @@ void Toggle_LED(uint8_t LED_no)
 		GPIO_PinOutToggle(LED1_PORT,LED1_PIN);
 }
 
-/********************************************************************************/
-/**************************************************************************************/
-/* * This function initializes the Analog comparator
- * Input variables: None required
- * Global Variables: sleep_block_counter
- * Output Variables: None required
- ********************************************************************************
- ********************************************************************************
-* Light sense: Output from the photodiode is connected to PC6 and ACMP0 Channel 6
-* * The excite pin is input to the photodiode and is connected to the PD6 Something LES_ALTEX0*/
 
-void Capacitive_Sensor_Init(void)
+
+void CLOCK(void)
+ {
+
+	 		CMU_OscillatorEnable(cmuOsc_LFXO, true, true);  		//Enabling LFXO
+	 	 	CMU_ClockSelectSet(cmuClock_LFA, cmuSelect_LFXO);		//Selecting  LFA clock
+
+	 //	CMU_ClockEnable(cmuClock_LETIMER0, true);
+
+	 	CMU_ClockEnable(cmuClock_TIMER0, true);
+	 	//Enabling the clock for the LETIMER
+	 	CMU_ClockEnable(cmuClock_CORELE, true);					//Enabling Low frequency Clock tree
+ }
+
+
+void prescaler()
 {
-	CMU_ClockEnable(cmuClock_ACMP1,true);
-#if 0
-	ACMP_Init_TypeDef my_acmp0;				//might be a global variable
+	Desired_Period = OnTime * LETIMER0_LFXO_count;
+	LETIMER0_prescaler = 0;
 
-	my_acmp0.biasProg=0x7;									/* biasProg */
-	my_acmp0.enable=false;									//Enable after init
-	my_acmp0.fullBias=false;								//default is false higher the bias the faster the comparison
-	my_acmp0.halfBias=false;								//Lower bias better for power
-	my_acmp0.hysteresisLevel=acmpHysteresisLevel7;			//Higher the better..default is 5
-	my_acmp0.inactiveValue=false;
-	my_acmp0.interruptOnFallingEdge=false;
-	my_acmp0.interruptOnRisingEdge=false;					//Default is false
-	my_acmp0.lowPowerReferenceEnabled=false;					/* Disabled emitting inactive value during warmup. */
-	my_acmp0.vddLevel=0x3D;						/* VDD level */
-	my_acmp0.warmTime=acmpWarmTime512;						/* 512 cycle warmup to be safe */
-
-
-	ACMP_Init(ACMP0, &my_acmp0);
-
-	ACMP0->INPUTSEL=0X02<<_ACMP_INPUTSEL_VDDLEVEL_SHIFT;
-
-	ACMP_ChannelSet(ACMP0,acmpChannelVDD,acmpChannel6);
-#endif
-/************************************************************************/
-	ACMP_CapsenseInit_TypeDef my_acmp_capsense=
-		{
-		   .fullBias                 = false,
-		   .halfBias                 = false,
-		   .biasProg                 = 0x7,
-		   .warmTime                 = acmpWarmTime512,
-		   .hysteresisLevel          = acmpHysteresisLevel7,
-		   .resistor                 = acmpResistor0,
-		   .lowPowerReferenceEnabled = false,
-		   .vddLevel                 = 0x3D,
-		   .enable                   = false
-		  };
-
-	ACMP_CapsenseInit(ACMP1,&my_acmp_capsense);
-	/*// if gpio is to be disabled
-	// Configure ACMP locations, ACMP output to pin disabled.
-	  ACMP_GPIOSetup(ACMP0, 0, false, false);
-	  ACMP_GPIOSetup(ACMP1, 0, false, false);
-*/
-	  // Initialize ACMPs in capacitive sense mode.
-	  /*ACMP_CapsenseInit(ACMP0, &initACMP);
-	  ACMP_CapsenseInit(ACMP1, &initACMP);*/
-
-	ACMP_Channel_TypeDef my_acmp_channel=acmpChannelCapSense;
-	ACMP_CapsenseChannelSet(ACMP1,my_acmp_channel);
-
-	  //ACMP_ChannelSet(ACMP0,acmpChannelVDD,acmpChannel6);
-
-	//Interrupts part
-	ACMP0->IFC=0xFFFF ;									//Clear all interrupts
-	blockSleepMode(ACMP_LOWEST_ENERGY_MODE);					//Minimum is EM3 possible
-	ACMP_Enable(ACMP1);
+	int temp = Desired_Period / 1;
+	Prescaled_two_power = 1;
+	while (temp > LETIMER0_Max_Count)
+	{
+	LETIMER0_prescaler ++;
+	Prescaled_two_power = Prescaled_two_power * 2;
+	temp =  Desired_Period / Prescaled_two_power;
+	}
+	Desired_Period = temp;
 }
-/***********************************************************************************/
+
+void LETIMER0_Setup(){
+
+	CLOCK(); // starting the clocks
+
+			CMU->LFAPRESC0= LETIMER0_prescaler <<8;
+			LETIMER_CompareSet(LETIMER0, 0, Desired_Period );
+		    LETIMER_CompareSet(LETIMER0, 1, LETIMER0_period*(LETIMER0_LFXO_count/Prescaled_two_power));
+
+	    // Defining the initialization values of the LETIMER
+
+	           const LETIMER_Init_TypeDef letimerInitvalues =
+	             {
+	             .enable         = true,                   // Start counting when init is completed.
+	             .debugRun       = false,                  // Counter will stop during debug halt.
+	             .rtcComp0Enable = false,                  // Stop counting when RTC COMP0 match.
+	             .rtcComp1Enable = false,                  // Stop counting when RTC COMP1 match.
+	             .comp0Top       = true,                   // COMP0 is used as TOP. Hence, load COMP0 into CNT when counter underflows.
+	             .bufTop         = false,                  // Don't load COMP1 into COMP0 when REP0 reaches 0.
+	             .out0Pol        = 0,                      // Idle value for output 0.
+	             .out1Pol        = 0,                      // Idle value for output 1.
+	             .ufoa0          = letimerUFOANone,
+	             .ufoa1          = letimerUFOANone,
+	             .repMode        = letimerRepeatFree       // Count in a loop.
+	             };
+		// Clears all interrupts LETIMER0_IFC_UF
+		 LETIMER_IntClear(LETIMER0, 0x01);
+		 // Enabling the LETIMER
+		 LETIMER_IntEnable(LETIMER0, LETIMER_IEN_COMP0|LETIMER_IEN_COMP1);
+		 // Initialize LETIMER
+		 LETIMER_Init(LETIMER0, &letimerInitvalues);
+		 // blocking sleep mode
+		 	 	 	 // blockSleepMode(ENERGY_MODE);
+		 // Enable interrupt in the processor
+		 NVIC_EnableIRQ(LETIMER0_IRQn);
+}
+
+void LETIMER0_IRQHandler(){
+	int flag;
+	 INT_Disable();
+
+	  flag = LETIMER_IntGet(LETIMER0);
+	  LETIMER_IntClear(LETIMER0, LETIMER_IFC_COMP0 | LETIMER_IFC_COMP1);
+
+	  // the PWM is here. Depending on that, the interrupt will be handled
+	 if(flag & LETIMER_IF_COMP0)
+	 {
+
+		  Turn_on_LED(1);
+		 ACMP0->CTRL &= ~ACMP_CTRL_EN;
+		 LETIMER0 ->IFC = flag;
+	 }
+		 else
+		 {
+			 ACMP0->CTRL |=ACMP_CTRL_EN;
+			 Turn_off_LED(1);
+		 LETIMER0->IFC = flag;
+		 while(!(ACMP0->STATUS & ACMP_STATUS_ACMPACT));
+		 }
+	 INT_Enable();
+
+ }
+
+
+
+//void GPIO_Setup(void)
+//{
+//
+//		GPIO_PinModeSet(PortD , Pin1, gpioModePushPull, 1);
+//		GPIO_IntConfig(PortD , Pin1,0, true, true);
+//		GPIO->IEN = 1<< Pin1;
+//  //NVIC_EnableIRQ(GPIO_ODD_IRQn);
+//}
+
+
+
+
+void TimerSetup()
+{
+
+	GPIO_PinModeSet(gpioPortD, 1, gpioModePushPull, 0);
+	// Setting CC channel parameters
+	  TIMER_InitCC_TypeDef timerCCInit =
+	  {
+	    .eventCtrl  = timerEventEveryEdge,
+	    .edge       = timerEdgeBoth,
+	    .prsSel     = timerPRSSELCh0,
+	    .cufoa      = timerOutputActionNone,
+	    .cofoa      = timerOutputActionNone,
+	    .cmoa       = timerOutputActionToggle,
+	    .mode       = timerCCModePWM,
+	    .filter     = false,
+	    .prsInput   = false,
+	    .coist      = false,
+	    .outInvert  = false,
+	  };
+
+	  /* Configure CC channel 0 */
+	    TIMER_InitCC(TIMER0, 0, &timerCCInit);
+
+	    /* Route CC0 to location 3 (PD1) and enable pin */
+	    TIMER0->ROUTE |= (TIMER_ROUTE_CC0PEN | TIMER_ROUTE_LOCATION_LOC3);
+
+	    /* Set Top Value */
+	    TIMER_TopSet(TIMER0, CMU_ClockFreqGet(cmuClock_HFPER)/PWM_FREQ);
+
+	    /* Set compare value starting at 0 */
+	     TIMER_CompareBufSet(TIMER0, 0, 0);
+
+
+	// setting timer 0 parameters
+	 TIMER_Init_TypeDef timer0Init =
+	   {
+		 .enable     = true,
+		 .debugRun   = true,
+		 .prescale   = timerPrescale64,
+		 .clkSel     = timerClkSelHFPerClk,  // Using the high frequency clock
+		 .fallAction = timerInputActionNone,
+		 .riseAction = timerInputActionNone,
+		 .mode       = timerModeUp,  // counting up
+		 .dmaClrAct  = false,
+		 .quadModeX4 = false,
+		 .oneShot    = false,
+		 .sync       = false,
+	   };
+
+		 TIMER_IntEnable(TIMER0, TIMER_IF_OF);
+	 	 NVIC_EnableIRQ(TIMER0_IRQn);
+		 TIMER_Init(TIMER0, &timer0Init);
+}
+
+void TIMER0_IRQHandler(void)
+{
+	/*PWM signal of approximately 150Hz, with increasing
+	 * duty cycle. */
+
+
+
+	  uint32_t compareValue;
+
+	  /* Clear flag for TIMER0 overflow interrupt */
+	  TIMER_IntClear(TIMER0, TIMER_IF_OF);
+
+	  compareValue = TIMER_CaptureGet(TIMER0, 0);
+	  /* increment duty-cycle or reset if reached TOP value */
+
+	  //compareValue=700;
+
+	  if( compareValue == TIMER_TopGet(TIMER0))  // Reset
+		{TIMER_CompareBufSet(TIMER0, 0, 0);
+		}
+
+	  else
+		TIMER_CompareBufSet(TIMER0, 0, pwmCapValue); // Increment
+		//GPIO_Setup();
+}
+
+
+
 int main(void)
 {
   /* Chip errata */
   CHIP_Init();
+#if PWM_TEST==ON
+  CLOCK();
   GPIO_LedsInit();
-#if SYSTEM_TEST==ON
-  while(1)
-  {
-  Turn_on_LED(1);
-  for(int i=0;i<1000000;i++);
-  Turn_off_LED(1);
-  for(int i=0;i<1000000;i++);
-  }
-#endif
-#if CAPACITIVE_SENSOR==ON
-  Capacitive_Sensor_Init();
+  //LETIMER0_Setup();
+  //Turn_on_LED(1);
+  TimerSetup();
 #endif
   /* Infinite loop */
   while (1) {

@@ -1,4 +1,5 @@
-src/main.o: ../src/main.c ../src/main.h \
+src/bme280_support.o: ../src/bme280_support.c ../src/bme280_support.h \
+ ../src/bme280.h ../src/main.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\device\siliconlabs\efm32lg\include\em_device.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\device\siliconlabs\efm32lg\include\efm32lg990f256.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\cmsis\include\core_cm3.h \
@@ -71,9 +72,12 @@ src/main.o: ../src/main.c ../src/main.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_i2c.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_leuart.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_lcd.h \
- ../src/bme280.h ../src/bme280_support.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_prs.h \
  c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_system.h
+
+../src/bme280_support.h:
+
+../src/bme280.h:
 
 ../src/main.h:
 
@@ -220,10 +224,6 @@ c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\
 c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_leuart.h:
 
 c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_lcd.h:
-
-../src/bme280.h:
-
-../src/bme280_support.h:
 
 c:\siliconlabs\simplicitystudio\v4\developer\sdks\exx32\v5.0.0.0\platform\emlib\inc\em_prs.h:
 

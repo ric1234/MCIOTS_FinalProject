@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include "em_device.h"
 #include "em_chip.h"
 #include "em_int.h"
@@ -25,6 +26,11 @@
 #include "em_dma.h"
 #include "em_i2c.h"
 #include "em_leuart.h"
+#include "em_lcd.h"
+#include "bme280.h"
+#include "bme280_support.h"
+#include "em_prs.h"
+#include "em_system.h"
 
 #define ON							1
 #define OFF							0
@@ -35,6 +41,25 @@
 #define LED0_PIN					2
 #define LED1_PIN					3
 
+
+
+#define I2C1_SDA_PORT				gpioPortC
+#define I2C1_SCL_PORT				gpioPortC
+#define I2C1_SDA_PIN				4
+#define I2C1_SCL_PIN				5
+
+#define I2C1_POWER_PORT				gpioPortD
+#define I2C1_POWER_PIN				0
+#define I2C1_INTERRUPT_PORT			gpioPortD
+#define I2C1_INTERRUPT_PIN			1
+
+#define I2C_MIN_SLEEP_BLOCK			EM1
+#define I2C_SPEED_MODE				i2cClockHLRFast					//i2cClockHLRStandard
+#define I2C_FREQ_MAX				I2C_FREQ_STANDARD_MAX			//I2C_FREQ_FAST_MAX
+
+#define BME280_I2C_ADDRESS			0x76							//0x77 if SDO is connected to high
+#define WRITE_TO_I2C				0
+#define READ_FROM_I2C				1
 typedef enum
 {
 	EM0=0, EM1, EM2, EM3
@@ -50,6 +75,10 @@ uint8_t sleep_block_counter[4];
  * Modules Power Control
  */
 #define SYSTEM_TEST					OFF
-#define CAPACITIVE_SENSOR			ON
+#define CAPACITIVE_SENSOR			OFF
+#define I2C_FOR_BME280				ON
+#define BME280						ON
+#define PWM_TEST					OFF
+
 
 #endif /* SRC_MAIN_H_ */
