@@ -76,9 +76,9 @@ uint8_t sleep_block_counter[4];
  */
 #define SYSTEM_TEST					OFF
 #define CAPACITIVE_SENSOR			OFF
-#define I2C_FOR_BME280				ON
-#define BME280						ON
-#define PWM_TEST					OFF
+#define I2C_FOR_BME280				OFF			//only turn this on to test the BME280
+#define BME280						OFF
+#define PWM_TEST					ON
 
 
 #endif /* SRC_MAIN_H_ */

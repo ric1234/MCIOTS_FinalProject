@@ -405,6 +405,7 @@ u8 I2C_WRITE_READ_STRING(u8 device_addr, u8 reg_addr,u8* read_string,u8 cnt)
 	}
 	//Single byte read
 	I2C1->CMD=I2C_CMD_NACK;											//Send NACK from the master
+	for(int nn=0;nn<100;nn++);
 	I2C1->CMD=I2C_CMD_STOP;											//Send stop bit
 
 	//unblockSleepMode(I2C_MIN_SLEEP_BLOCK);
