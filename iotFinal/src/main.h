@@ -78,7 +78,26 @@ uint8_t sleep_block_counter[4];
 #define CAPACITIVE_SENSOR			OFF
 #define I2C_FOR_BME280				OFF			//only turn this on to test the BME280
 #define BME280						OFF
-#define PWM_TEST					ON
+#define PWM_TEST					OFF
+#define LEUART_TEST					ON
+
+/*##################################################################*/
+#define LEUART0_TX_PORT				gpioPortD
+#define LEUART0_TX_PIN				4
+#define LEUART0_RX_PORT				gpioPortD
+#define LEUART0_RX_PIN				5
+
+//LEUART0 Initialization values
+#define	LEU0_PARITY_VALUE				leuartNoParity
+#define LEU0_BAUD						9600
+#define	LEU0_STOPB						leuartStopbits1
+#define LEU0_DATAB						leuartDatabits8
+#define LEU0_REF_FREQ					0
+#define LEAURT_LOOPBACK					ON
+#define LEUART_INTERRUPTS				ON
+#define LEUART_TX_INTERRUPT				ON
+
+
 
 
 #endif /* SRC_MAIN_H_ */

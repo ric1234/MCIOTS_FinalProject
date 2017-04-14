@@ -698,6 +698,80 @@ void Clock_setup(sleepstate_t current_energy_mode)
 }
 
 
+void LEUART0_Setup(void)
+{
+	  LEUART_Init_TypeDef my_leuart=
+	  {
+			  .baudrate=LEU0_BAUD,
+			  .databits=LEU0_DATAB,
+			  .enable=leuartDisable,
+			  .parity=LEU0_PARITY_VALUE,
+			  .refFreq=LEU0_REF_FREQ,
+			  .stopbits=LEU0_STOPB
+	  };
+	  CMU_ClockSelectSet(cmuClock_LFB,cmuSelect_LFXO);
+	  CMU_ClockEnable(cmuClock_LFB,true);										//Select the clock
+	  CMU_ClockEnable(cmuClock_LEUART0,true);										//Select the clock
+
+
+
+	GPIO_PinModeSet(LEUART0_TX_PORT,LEUART0_TX_PIN, gpioModePushPull, 1);			//Initialize the LED0
+	GPIO_PinModeSet(LEUART0_RX_PORT,LEUART0_RX_PIN, gpioModeInputPull, 1);			//Initialize the LED0
+
+
+	LEUART_Init(LEUART0,&my_leuart);
+	LEUART0->ROUTE=LEUART_ROUTE_RXPEN|LEUART_ROUTE_TXPEN |LEUART_ROUTE_LOCATION_DEFAULT;
+#if LEAURT_LOOPBACK==ON
+	LEUART0->CTRL|=LEUART_CTRL_LOOPBK;
+#endif
+	//Interrupts part
+	LEUART0->IFC =0xFFFF ;					//Clear all interrupts
+#if LEUART_INTERRUPTS==ON
+	LEUART0->IEN =LEUART_IEN_RXDATAV;
+#if LEUART_TX_INTERRUPT==ON
+	LEUART0->IEN |= LEUART_IEN_TXC ;
+#endif
+
+	NVIC_EnableIRQ(LEUART0_IRQn);
+#endif
+
+	LEUART_Enable(LEUART0,leuartEnable);
+	LEUART0->CMD=LEUART_CMD_TXEN;
+
+	//Disable part
+	/*GPIO_PinModeSet(LEUART0_TX_PORT,LEUART0_TX_PIN, gpioModeDisabled, 0);			//Initialize the LED0
+	GPIO_PinModeSet(LEUART0_RX_PORT,LEUART0_RX_PIN, gpioModeDisabled, 0);			//Initialize the LED0
+	LEUART_Enable(LEUART0,leuartDisable);
+	CMU_ClockEnable(cmuClock_LEUART0,false);*/
+
+
+}
+
+/*******************************************************************************************/
+  /*
+   * Interrupt handler routines
+   */
+  /**************************************************************************************/
+  /*
+   * This is the LEUART0 interrupt handler routine
+   * This is an atomic function as it should not be interrupted when being executed
+   * Input variables: None required
+   * Global Variables: my_buffer, circ_buff_rd
+   * Output Variables: None required
+   ********************************************************************************/
+ void LEUART0_IRQHandler(void)
+ {
+	//static char i=42;
+	static uint8_t leuart_recvd;
+	int intFlags=0;
+	INT_Disable();								//Make routine atomic
+	intFlags=LEUART_IntGet(LEUART0);
+	LEUART_IntClear(LEUART0 ,intFlags);			//Clear the interrupts
+
+	INT_Enable();
+
+ }
+
 int main(void)
 {
   /* Chip errata */
@@ -743,6 +817,11 @@ int main(void)
     output= bme280_data_readout_template();
   #endif
 
+#if LEUART_TEST==ON
+    Clock_setup(EM0);
+    LEUART0_Setup();
+    LEUART0->TXDATA='A';
+#endif
   /* Infinite loop */
   while (1) {
 	  //sleep();
